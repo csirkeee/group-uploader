@@ -1,7 +1,8 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
-import { Group } from "./entities/group"
+import { GroupEntity } from "./entities/group"
 import { dbHost, dbPass, dbPort, dbSchema, dbUser } from "../config";
+import { ImageEntity } from "./entities/image";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -10,7 +11,7 @@ export const AppDataSource = new DataSource({
   username: dbUser,
   password: dbPass,
   database: dbSchema,
-  entities: [Group],
+  entities: [GroupEntity, ImageEntity],
   synchronize: true,
   logging: false,
 })

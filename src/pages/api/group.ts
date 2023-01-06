@@ -2,14 +2,14 @@ import "reflect-metadata"
 
 import type { NextApiHandler, NextApiResponse } from 'next'
 import { AppDataSource } from "../../data/datasource";
-import { Group } from "../../data/entities/group";
+import { GroupEntity } from "../../data/entities/group";
 
 const addNewGroup = async (requestBody, response: NextApiResponse) => {
-  const group = new Group();
+  const group = new GroupEntity();
   group.name = requestBody.name;
   group.description = requestBody.description;
 
-  const groupRepository = AppDataSource.getRepository(Group);
+  const groupRepository = AppDataSource.getRepository(GroupEntity);
 
   await groupRepository.save(group);
 
@@ -17,15 +17,17 @@ const addNewGroup = async (requestBody, response: NextApiResponse) => {
 }
 
 const getGroups = async (response: NextApiResponse<any>) => {
-  const groupRepository = AppDataSource.getRepository(Group)
+  const groupRepository = AppDataSource.getRepository(GroupEntity)
 
-  const allGroups = await groupRepository.find();
+  const allGroups = await groupRepository.find({relations: ['images']});
 
   response.json(allGroups);
 };
 
 const groupHandler: NextApiHandler = async (request, response) => {
-  await AppDataSource.initialize();
+  if(!AppDataSource.isInitialized) {
+    await AppDataSource.initialize();
+  }
   if(request.method === 'POST') {
     await addNewGroup(request.body, response);
   } else {
