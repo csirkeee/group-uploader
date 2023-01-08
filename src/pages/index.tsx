@@ -1,19 +1,30 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
+import type { NextPage } from 'next';
+import Head from 'next/head';
 
-import Counter from '../features/counter/Counter'
-import styles from '../styles/Home.module.css'
+import Counter from '../features/counter/Counter';
+import styles from '../styles/Home.module.css';
+import { getAllGroups } from "../services/groupService";
+import { Group } from "../dtos/group";
 
-const IndexPage: NextPage = () => {
+type IndexPageProps = {
+  allGroups: Group[];
+}
+
+const IndexPage: NextPage<IndexPageProps> = ({allGroups}) => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Redux Toolkit</title>
-        <link rel="icon" href="/favicon.ico" />
+        <title>Group uploader</title>
+        <link rel="icon" href="/favicon.ico"/>
       </Head>
       <header className={styles.header}>
-        <img src="/logo.svg" className={styles.logo} alt="logo" />
-        <Counter />
+        <img src="/logo.svg" className={styles.logo} alt="logo"/>
+        <Counter/>
+        {allGroups.map((group) =>
+          <div key={group.id}>
+            <p>Group name is {group.name}, has {group.images.length} members</p>
+          </div>
+        )}
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
@@ -57,7 +68,15 @@ const IndexPage: NextPage = () => {
         </span>
       </header>
     </div>
-  )
+  );
+};
+
+// This gets called on every request
+export async function getServerSideProps() {
+  const allGroups = await getAllGroups();
+
+  // Pass data to the page via props
+  return {props: {allGroups}};
 }
 
-export default IndexPage
+export default IndexPage;
