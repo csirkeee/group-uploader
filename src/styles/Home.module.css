@@ -7,7 +7,7 @@
   pointer-events: none;
 }
 
-.header {
+.groups {
   min-height: 100vh;
   display: flex;
   flex-direction: column;

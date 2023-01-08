@@ -41,3 +41,15 @@ export async function getAllGroups() {
 
   return groupEntities.map(mapGroupEntityToDto);
 }
+
+export async function getOneGroup(id: number) {
+  if (!AppDataSource.isInitialized) {
+    await AppDataSource.initialize();
+  }
+
+  const groupRepository = AppDataSource.getRepository(GroupEntity);
+
+  const groupEntity = await groupRepository.findOne({where: {id}, relations: ['images']});
+
+  return mapGroupEntityToDto(groupEntity);
+}
