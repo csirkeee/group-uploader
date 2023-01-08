@@ -18,6 +18,9 @@ const IndexPage: NextPage<IndexPageProps> = ({allGroups}) => {
         <link rel="icon" href="/favicon.ico"/>
       </Head>
       <div className={styles.groups}>
+        <div>
+          <Link href="/upload">Upload new group</Link>
+        </div>
         {allGroups.map((group) =>
           <div key={group.id}>
             <p>Group name is {group.name}, has {group.images.length} members <Link
