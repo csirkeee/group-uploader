@@ -4,6 +4,7 @@ import { getAllGroups } from "../services/groupService";
 import { Group } from "../dtos/group";
 import Link from "next/link";
 import { Container, ListGroup } from "react-bootstrap";
+import NextImage from "next/image"
 
 type IndexPageProps = {
   allGroups: Group[];
@@ -14,7 +15,7 @@ const IndexPage: NextPage<IndexPageProps> = ({allGroups}) => {
     <Container>
       <div className="mt-4 p-5 bg-dark text-white rounded text-center">
         <h1>Group uploader app</h1>
-        <img src="/logo.svg" style={{
+        <NextImage src="/logo.svg" style={{
           height: "20vmin",
           pointerEvents: "none"
         }} alt="logo" />

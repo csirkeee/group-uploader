@@ -1,8 +1,6 @@
 import type { NextPage } from 'next';
-import Head from 'next/head';
-
-import Link from "next/link";
 import { Button, Container, Form, Navbar } from "react-bootstrap";
+import NextImage from "next/image";
 
 const UploadPage: NextPage = () => {
   return (
@@ -10,8 +8,8 @@ const UploadPage: NextPage = () => {
       <Navbar bg="dark" variant="dark">
         <Container>
           <Navbar.Brand href="/">
-            <img
-              alt=""
+            <NextImage
+              alt="Home"
               src="/logo.svg"
               width="30"
               height="30"
