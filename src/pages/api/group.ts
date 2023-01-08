@@ -2,11 +2,12 @@ import "reflect-metadata";
 
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
 import { GroupEntity } from "../../data/entities/group";
-import { getAllGroups } from "../../services/groupService";
+import { createNewGroup, getAllGroups } from "../../services/groupService";
 import busboy from "busboy";
 import FormData from "form-data";
 import axios from "axios";
 import { imgurClientId } from "../../config";
+import { ImageEntity } from "../../data/entities/image";
 
 export const config = {
   api: {
@@ -16,8 +17,13 @@ export const config = {
 
 export const parseForm = async (
   req: NextApiRequest
-): Promise<void> => {
-  return new Promise(async (resolve, reject) => {
+): Promise<GroupEntity> => {
+  const group = new GroupEntity();
+  group.images = [];
+
+  const imageUploadPromises: Promise<void>[] = [];
+
+  await new Promise<void>(async (resolve, reject) => {
     const bb = busboy({headers: req.headers});
     bb.on('file', (name, file, info) => {
       const {filename, encoding, mimeType} = info;
@@ -25,46 +31,60 @@ export const parseForm = async (
         `File [${name}]: filename: [${filename}], encoding: [${encoding}], mimeType: [${mimeType}]`
       );
 
-      const fileBufferChunks = [];
+      imageUploadPromises.push(new Promise<void>((resolve, reject) => {
+        const fileBufferChunks = [];
+        file
+          .on('data', (data) => {
+            console.log(`File [${name}] got ${data.length} bytes`);
+            fileBufferChunks.push(data);
+          })
+          .on('close', () => {
+            console.log(`File [${name}] done`);
 
-      file
-        .on('data', (data) => {
-          console.log(`File [${name}] got ${data.length} bytes`);
-          fileBufferChunks.push(data);
-        })
-        .on('close', () => {
-          console.log(`File [${name}] done`);
+            const buffer = Buffer.concat(fileBufferChunks);
 
-          const buffer = Buffer.concat(fileBufferChunks);
+            const data = new FormData();
+            data.append('image', buffer, filename);
 
-          const data = new FormData();
-          data.append('image', buffer, filename);
+            const axiosConfig = {
+              method: 'post',
+              url: 'https://api.imgur.com/3/upload',
+              headers: {
+                'Authorization': `Client-ID ${imgurClientId}`,
+                ...data.getHeaders()
+              },
+              data: data
+            };
 
-          const axiosConfig = {
-            method: 'post',
-            url: 'https://api.imgur.com/3/upload',
-            headers: {
-              'Authorization': `Client-ID ${imgurClientId}`,
-              ...data.getHeaders()
-            },
-            data: data
-          };
 
-          axios(axiosConfig)
-            .then((response) => {
-              console.log('job trigger success');
-              console.log('success: ' + JSON.stringify(response.status));
-              console.log('success: ' + JSON.stringify(response.data));
-            })
-            .catch((error) => {
-              console.log('axios error');
-              console.log('error: ' + JSON.stringify(error));
-            });
-        });
-    })
-    ;
+            axios(axiosConfig)
+              .then((response) => {
+                console.log('job trigger success');
+                console.log('success: ' + JSON.stringify(response.status));
+                console.log('success: ' + JSON.stringify(response.data));
+                const imageEntity = new ImageEntity();
+                imageEntity.filename = filename;
+                imageEntity.url = response.data.data.link;
+                imageEntity.group = group;
+                group.images.push(imageEntity);
+
+                resolve();
+              })
+              .catch((error) => {
+                console.log('axios error');
+                console.log('error: ' + JSON.stringify(error));
+                reject(error);
+              });
+          });
+      }));
+    });
     bb.on('field', (name, val, info) => {
       console.log(`Field [${name}]: value: [${val}]`);
+      if(name === 'name') {
+        group.name = val;
+      } else if (name === 'description') {
+        group.description = val;
+      }
     });
     bb.on('close', () => {
       console.log('Done parsing form!');
@@ -76,15 +96,20 @@ export const parseForm = async (
     });
     req.pipe(bb);
   });
+
+  console.log("waiting on image uploads");
+  console.log(imageUploadPromises.length);
+  await Promise.all(imageUploadPromises);
+
+  console.log("image uploads done");
+
+  return group;
 };
 
 const addNewGroup = async (request, response: NextApiResponse) => {
-  await parseForm(request);
+  const group = await parseForm(request);
 
-  const group = new GroupEntity();
-  // group.name = requestBody.name;
-  // group.description = requestBody.description;
-  // await createNewGroup(group);
+  await createNewGroup(group);
 
   response.redirect("/");
 };
