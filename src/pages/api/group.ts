@@ -1,33 +1,68 @@
 import "reflect-metadata";
 
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
-import { AppDataSource } from "../../data/datasource";
 import { GroupEntity } from "../../data/entities/group";
-import { createNewGroup, getAllGroups } from "../../services/groupService";
+import { getAllGroups } from "../../services/groupService";
 import busboy from "busboy";
+import FormData from "form-data";
+import axios from "axios";
+import { imgurClientId } from "../../config";
 
 export const config = {
   api: {
     bodyParser: false,
   },
-}
+};
 
 export const parseForm = async (
   req: NextApiRequest
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
-    const bb = busboy({ headers: req.headers });
+    const bb = busboy({headers: req.headers});
     bb.on('file', (name, file, info) => {
-      const { filename, encoding, mimeType } = info;
+      const {filename, encoding, mimeType} = info;
       console.log(
         `File [${name}]: filename: [${filename}], encoding: [${encoding}], mimeType: [${mimeType}]`
       );
-      file.on('data', (data) => {
-        console.log(`File [${name}] got ${data.length} bytes`);
-      }).on('close', () => {
-        console.log(`File [${name}] done`);
-      });
-    });
+
+      const fileBufferChunks = [];
+
+      file
+        .on('data', (data) => {
+          console.log(`File [${name}] got ${data.length} bytes`);
+          fileBufferChunks.push(data);
+        })
+        .on('close', () => {
+          console.log(`File [${name}] done`);
+
+          const buffer = Buffer.concat(fileBufferChunks);
+
+          const data = new FormData();
+          data.append('image', buffer, filename);
+
+          const axiosConfig = {
+            method: 'post',
+            url: 'https://api.imgur.com/3/upload',
+            headers: {
+              'Authorization': `Client-ID ${imgurClientId}`,
+              ...data.getHeaders()
+            },
+            data: data
+          };
+
+          axios(axiosConfig)
+            .then((response) => {
+              console.log('job trigger success');
+              console.log('success: ' + JSON.stringify(response.status));
+              console.log('success: ' + JSON.stringify(response.data));
+            })
+            .catch((error) => {
+              console.log('axios error');
+              console.log('error: ' + JSON.stringify(error));
+            });
+        });
+    })
+    ;
     bb.on('field', (name, val, info) => {
       console.log(`Field [${name}]: value: [${val}]`);
     });
@@ -45,9 +80,6 @@ export const parseForm = async (
 
 const addNewGroup = async (request, response: NextApiResponse) => {
   await parseForm(request);
-
-  // console.log('Contents');
-  // console.log(JSON.stringify(fields))
 
   const group = new GroupEntity();
   // group.name = requestBody.name;
