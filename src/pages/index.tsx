@@ -12,31 +12,37 @@ type IndexPageProps = {
 const IndexPage: NextPage<IndexPageProps> = ({allGroups}) => {
   return (
     <Container>
-      <h1 className="mt-3">Group uploader app</h1>
-      <h3 className="mt-3">Currently uploaded groups:</h3>
-      <ListGroup>
+      <div className="mt-4 p-5 bg-dark text-white rounded text-center">
+        <h1>Group uploader app</h1>
+        <img src="/logo.svg" style={{
+          height: "20vmin",
+          pointerEvents: "none"
+        }} alt="logo" />
+          </div>
+          <h3 className="mt-3">Currently uploaded groups:</h3>
+          <ListGroup>
         {allGroups.map((group) =>
           <ListGroup.Item key={group.id}>
-            Group name is {group.name}, has {group.images.length} members <Link
-              href={`/groups/${group.id}`}>
-              details
-            </Link>
+            Group <b>{group.name}</b>, with <b>{group.images.length}</b> image(s) <Link
+          href={`/groups/${group.id}`}>
+          details
+          </Link>
           </ListGroup.Item>
-        )}
-      </ListGroup>
-      <hr/>
+          )}
+          </ListGroup>
+          <hr/>
 
-      <Link href="/upload">Upload new group</Link>
-    </Container>
-  );
-};
+          <Link href="/upload">Upload new group</Link>
+          </Container>
+          );
+        };
 
-// This gets called on every request
-export const getServerSideProps: GetServerSideProps = async () => {
-  const allGroups = await getAllGroups();
+        // This gets called on every request
+        export const getServerSideProps: GetServerSideProps = async () => {
+        const allGroups = await getAllGroups();
 
-  // Pass data to the page via props
-  return {props: {allGroups}};
-};
+        // Pass data to the page via props
+        return {props: {allGroups}};
+      };
 
-export default IndexPage;
+        export default IndexPage;
