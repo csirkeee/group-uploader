@@ -1,14 +1,5 @@
 version: '3'
 services:
-  group_uploader:
-    build:
-      context: .
-    ports:
-      - 3000:3000
-    depends_on:
-      - group_mysql
-    environment:
-      DB_HOST: "group_mysql"
   group_mysql:
     image: "mysql:8.0.30"
     ports:
