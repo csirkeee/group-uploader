@@ -27,20 +27,14 @@ export const parseForm = async (
     const bb = busboy({headers: req.headers});
     bb.on('file', (name, file, info) => {
       const {filename, encoding, mimeType} = info;
-      console.log(
-        `File [${name}]: filename: [${filename}], encoding: [${encoding}], mimeType: [${mimeType}]`
-      );
 
       imageUploadPromises.push(new Promise<void>((resolve, reject) => {
         const fileBufferChunks = [];
         file
           .on('data', (data) => {
-            console.log(`File [${name}] got ${data.length} bytes`);
             fileBufferChunks.push(data);
           })
           .on('close', () => {
-            console.log(`File [${name}] done`);
-
             const buffer = Buffer.concat(fileBufferChunks);
 
             const data = new FormData();
@@ -59,9 +53,6 @@ export const parseForm = async (
 
             axios(axiosConfig)
               .then((response) => {
-                console.log('job trigger success');
-                console.log('success: ' + JSON.stringify(response.status));
-                console.log('success: ' + JSON.stringify(response.data));
                 const imageEntity = new ImageEntity();
                 imageEntity.filename = filename;
                 imageEntity.url = response.data.data.link;
@@ -71,15 +62,12 @@ export const parseForm = async (
                 resolve();
               })
               .catch((error) => {
-                console.log('axios error');
-                console.log('error: ' + JSON.stringify(error));
                 reject(error);
               });
           });
       }));
     });
     bb.on('field', (name, val, info) => {
-      console.log(`Field [${name}]: value: [${val}]`);
       if(name === 'name') {
         group.name = val;
       } else if (name === 'description') {
@@ -87,21 +75,15 @@ export const parseForm = async (
       }
     });
     bb.on('close', () => {
-      console.log('Done parsing form!');
       resolve();
     });
     bb.on('error', (e) => {
-      console.log('Busboy error!');
       reject(e);
     });
     req.pipe(bb);
   });
 
-  console.log("waiting on image uploads");
-  console.log(imageUploadPromises.length);
   await Promise.all(imageUploadPromises);
-
-  console.log("image uploads done");
 
   return group;
 };

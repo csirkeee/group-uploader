@@ -18,7 +18,7 @@ const IndexPage: NextPage<IndexPageProps> = ({allGroups}) => {
         <NextImage src="/logo.svg" style={{
           height: "20vmin",
           pointerEvents: "none"
-        }} alt="logo" />
+        }} width="1000" height="1000" alt="logo" />
           </div>
           <h3 className="mt-3">Currently uploaded groups:</h3>
           <ListGroup>
