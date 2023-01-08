@@ -1,10 +1,8 @@
 import type { GetServerSideProps, NextPage } from 'next';
-import Head from 'next/head';
 
-import styles from '../../styles/Home.module.css';
-import { getAllGroups, getOneGroup } from "../../services/groupService";
+import { getOneGroup } from "../../services/groupService";
 import { Group } from "../../dtos/group";
-import Link from "next/link";
+import { Col, Container, Navbar, Row, Image, Card } from "react-bootstrap";
 
 type GroupPageProps = {
   group: Group;
@@ -12,25 +10,36 @@ type GroupPageProps = {
 
 const GroupPage: NextPage<GroupPageProps> = ({group}) => {
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Group uploader</title>
-        <link rel="icon" href="/favicon.ico"/>
-      </Head>
-      <div className={styles.groups}>
-        <div>
-          <Link href="/">Home</Link>
-        </div>
-        <div key={group.id}>
-          <p>Group name is {group.name}, has {group.images.length} members</p>
-        </div>
-        {group.images.map((image) =>
-          <div key={image.id}>
-            <p>Image name is {image.filename}, is at {image.url}</p>
-          </div>
-        )}
-      </div>
-    </div>
+    <>
+      <Navbar bg="dark" variant="dark">
+        <Container>
+          <Navbar.Brand href="/">
+            <img
+              alt=""
+              src="/logo.svg"
+              width="30"
+              height="30"
+              className="d-inline-block align-top"
+            />{' '}
+            Group uploader
+          </Navbar.Brand>
+        </Container>
+      </Navbar>
+      <Container>
+        <h1>Group {group.name}</h1>
+        <p>{group.description}</p>
+        <Row xs={2} md={4} className="g-4">
+          {group.images.map((image) => (
+            <Col>
+              <Card>
+                <Card.Img variant="top" src={image.url} title={image.filename}/>
+                <Card.Footer className="text-muted">{image.filename}</Card.Footer>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+    </>
   );
 };
 

@@ -1,15 +1,18 @@
-import '../styles/globals.scss'
+import '../styles/globals.scss';
 
-import { Provider } from 'react-redux'
-import type { AppProps } from 'next/app'
-import "reflect-metadata"
+import type { AppProps } from 'next/app';
+import "reflect-metadata";
 
-import store from '../store'
+import Head from "next/head";
 
 export default function MyApp({Component, pageProps}: AppProps) {
   return (
-    <Provider store={store}>
+    <>
+      <Head>
+        <title>Group uploader</title>
+        <link rel="icon" href="/favicon.ico"/>
+      </Head>
       <Component {...pageProps} />
-    </Provider>
-  )
+    </>
+  );
 }
